@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Smriti Somasundaram</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Syne:wght@400;500;700;800&family=Syne+Mono&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --ink:       #0e0f0c;
+      --deep:      #141612;
+      --celadon:   #8fada0;
+      --celadon-l: #b5cdc5;
+      --celadon-d: #5a8070;
+      --chalk:     #f0ece3;
+      --chalk-d:   #c8c3ba;
+      --muted:     #6b6b66;
+      --border:    #232620;
+      --border-l:  #ddd8cf;
+
+      --serif: 'Playfair Display', serif;
+      --syne:  'Syne', sans-serif;
+      --mono:  'Syne Mono', monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--chalk);
+      color: var(--ink);
+      font-family: var(--syne);
+      font-weight: 400;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ── CURSOR ─────────────────────────────── */
+    .c-dot, .c-ring {
+      position: fixed; pointer-events: none; border-radius: 50%; z-index: 9999;
+      mix-blend-mode: exclusion;
+    }
+    .c-dot  { width: 8px; height: 8px; background: var(--celadon); }
+    .c-ring { width: 40px; height: 40px; border: 1px solid var(--celadon); opacity: 0.6; z-index: 9998; }
+
+    /* ── NAV ────────────────────────────────── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 500;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 1.4rem 4rem;
+      mix-blend-mode: normal;
+    }
+    .nav-inner {
+      position: absolute; inset: 0;
+      background: rgba(240,236,227,0.88);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-l);
+    }
+    .nav-logo {
+      font-family: var(--serif); font-size: 1.1rem; font-style: italic;
+      text-decoration: none; color: var(--ink); letter-spacing: 0.02em;
+      position: relative; z-index: 1;
+    }
+    .nav-links { display: flex; gap: 2.5rem; list-style: none; position: relative; z-index: 1; }
+    .nav-links a {
+      font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.2em;
+      text-transform: uppercase; text-decoration: none; color: var(--muted);
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--celadon-d); }
+
+    /* ── HERO ───────────────────────────────── */
+    #hero {
+      min-height: 100vh;
+      background: var(--ink);
+      display: grid;
+      grid-template-rows: 1fr auto;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Subtle dot-matrix pattern */
+    #hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-image: radial-gradient(circle, rgba(143,173,160,0.12) 1px, transparent 1px);
+      background-size: 28px 28px;
+      pointer-events: none;
+    }
+
+    /* Celadon light bloom */
+    #hero::after {
+      content: '';
+      position: absolute;
+      width: 600px; height: 600px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(143,173,160,0.09) 0%, transparent 70%);
+      top: 10%; right: -100px;
+      pointer-events: none;
+    }
+
+    .hero-main {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 0 4rem 3rem;
+      padding-top: 9rem;
+      position: relative; z-index: 2;
+    }
+
+    .hero-eyebrow {
+      font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.3em;
+      text-transform: uppercase; color: var(--celadon-d);
+      margin-bottom: 3.5rem;
+      opacity: 0; animation: fadeUp 0.8s 0.2s forwards;
+    }
+
+    /* The split poem title */
+    .hero-poem {
+      display: flex;
+      flex-direction: column;
+      gap: 0.1em;
+      margin-bottom: 4rem;
+    }
+    .poem-line {
+      display: flex;
+      align-items: baseline;
+      gap: 0.4em;
+      overflow: hidden;
+    }
+    .poem-line .word {
+      font-family: var(--serif);
+      font-size: clamp(3.8rem, 8vw, 8.5rem);
+      font-weight: 400;
+      line-height: 0.95;
+      color: var(--chalk);
+      display: inline-block;
+      opacity: 0;
+      transform: translateY(100%);
+    }
+    .poem-line .word.italic { font-style: italic; color: var(--celadon); }
+    .poem-line .word.outline {
+      -webkit-text-stroke: 1px rgba(143,173,160,0.4);
+      color: transparent;
+    }
+    .poem-line .word:nth-child(1) { animation: slideUp 0.9s cubic-bezier(0.16,1,0.3,1) 0.4s forwards; }
+    .poem-line .word:nth-child(2) { animation: slideUp 0.9s cubic-bezier(0.16,1,0.3,1) 0.55s forwards; }
+    .poem-line:nth-child(2) .word:nth-child(1) { animation: slideUp 0.9s cubic-bezier(0.16,1,0.3,1) 0.65s forwards; }
+    .poem-line:nth-child(2) .word:nth-child(2) { animation: slideUp 0.9s cubic-bezier(0.16,1,0.3,1) 0.78s forwards; }
+    .poem-line:nth-child(3) .word { animation: slideUp 0.9s cubic-bezier(0.16,1,0.3,1) 0.88s forwards; }
+
+    .hero-sub {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 3rem;
+      padding-top: 3rem;
+      border-top: 1px solid rgba(143,173,160,0.15);
+      opacity: 0; animation: fadeUp 0.8s 1.1s forwards;
+    }
+    .hero-sub-item {
+      font-size: 0.88rem;
+      color: rgba(240,236,227,0.4);
+      line-height: 1.7;
+    }
+    .hero-sub-item strong {
+      display: block;
+      font-family: var(--mono); font-size: 0.6rem;
+      letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--celadon-d); font-weight: 400;
+      margin-bottom: 0.5rem;
+    }
+
+    .hero-scroll-hint {
+      font-family: var(--mono); font-size: 0.58rem; letter-spacing: 0.25em;
+      text-transform: uppercase; color: rgba(143,173,160,0.3);
+      padding: 1.5rem 4rem;
+      border-top: 1px solid rgba(143,173,160,0.08);
+      display: flex; align-items: center; gap: 2rem;
+      position: relative; z-index: 2;
+      opacity: 0; animation: fadeIn 1s 1.4s forwards;
+    }
+    .hero-scroll-hint::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, rgba(143,173,160,0.2), transparent);
+    }
+
+    /* ── STITCH DIVIDER ─────────────────────── */
+    .stitch {
+      height: 1px;
+      background: repeating-linear-gradient(
+        90deg, var(--celadon-d) 0, var(--celadon-d) 6px, transparent 6px, transparent 12px
+      );
+      opacity: 0.4;
+    }
+
+    /* ── ABOUT ──────────────────────────────── */
+    #about {
+      display: grid;
+      grid-template-columns: 1fr 1.6fr;
+    }
+    .about-photo {
+      background: var(--deep);
+      min-height: 580px;
+      position: relative; overflow: hidden;
+    }
+    .about-photo img { width: 100%; height: 100%; object-fit: cover; display: block; filter: grayscale(20%); }
+    .about-photo-ph {
+      position: absolute; inset: 0; display: flex;
+      flex-direction: column; align-items: center; justify-content: center; gap: 1rem;
+    }
+    .ph-ring {
+      width: 80px; height: 80px; border-radius: 50%;
+      border: 1px solid rgba(143,173,160,0.2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2rem;
+    }
+    .ph-lbl {
+      font-family: var(--mono); font-size: 0.58rem; letter-spacing: 0.22em;
+      color: rgba(143,173,160,0.3); text-transform: uppercase;
+    }
+    /* Celadon strip on right edge */
+    .about-photo::after {
+      content: '';
+      position: absolute; top: 0; right: 0; bottom: 0;
+      width: 3px;
+      background: linear-gradient(to bottom, transparent, var(--celadon-d), transparent);
+    }
+    .about-text {
+      padding: 7rem 5rem;
+      display: flex; flex-direction: column; justify-content: center;
+      background: var(--chalk);
+    }
+    .eyebrow {
+      font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.28em;
+      text-transform: uppercase; color: var(--celadon-d); margin-bottom: 1.3rem;
+    }
+    .s-heading {
+      font-family: var(--serif); font-size: clamp(2rem, 3.5vw, 3rem);
+      line-height: 1.1; margin-bottom: 2rem;
+    }
+    .s-heading em { font-style: italic; color: var(--celadon-d); }
+    .about-text p { color: #555550; font-size: 0.98rem; margin-bottom: 1.2rem; max-width: 50ch; line-height: 1.8; }
+    .about-stats {
+      display: grid; grid-template-columns: repeat(3,1fr);
+      gap: 2rem; margin-top: 3rem; padding-top: 2.5rem;
+      border-top: 1px solid var(--border-l);
+    }
+    .stat-n { font-family: var(--serif); font-size: 2.6rem; color: var(--celadon-d); line-height: 1; }
+    .stat-l { font-family: var(--mono); font-size: 0.58rem; letter-spacing: 0.18em; color: var(--muted); text-transform: uppercase; margin-top: 0.4rem; }
+
+    /* ── WORK ───────────────────────────────── */
+    #work { padding: 7rem 4rem; background: var(--chalk); }
+
+    .work-top {
+      display: flex; justify-content: space-between; align-items: flex-end;
+      margin-bottom: 4rem; padding-bottom: 3rem;
+      border-bottom: 1px solid var(--border-l);
+    }
+    .work-top p { font-size: 0.9rem; color: var(--muted); max-width: 40ch; margin-top: 0.8rem; line-height: 1.7; }
+
+    /* Tab switcher */
+    .tabs {
+      display: flex;
+      background: var(--ink);
+      padding: 5px;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+    .tb {
+      font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.15em;
+      text-transform: uppercase; padding: 0.7rem 1.6rem;
+      background: transparent; border: none; cursor: pointer;
+      color: rgba(240,236,227,0.35);
+      transition: background 0.25s, color 0.25s;
+    }
+    .tb.active { background: var(--celadon-d); color: white; }
+    .tb:not(.active):hover { color: var(--celadon-l); }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* Experience */
+    .exp-list { display: flex; flex-direction: column; }
+    .exp-item {
+      display: grid; grid-template-columns: 200px 1fr;
+      gap: 3rem; padding: 3rem 0;
+      border-bottom: 1px solid var(--border-l);
+    }
+    .exp-co    { font-family: var(--mono); font-size: 0.72rem; font-weight: 500; color: var(--celadon-d); letter-spacing: 0.08em; margin-bottom: 0.3rem; }
+    .exp-pd    { font-family: var(--mono); font-size: 0.62rem; color: var(--muted); letter-spacing: 0.08em; }
+    .exp-loc   { font-family: var(--mono); font-size: 0.6rem; color: var(--muted); margin-top: 0.2rem; }
+    .exp-role  { font-family: var(--serif); font-size: 1.5rem; line-height: 1.2; margin-bottom: 1rem; }
+    .exp-bul   { list-style: none; display: flex; flex-direction: column; gap: 0.6rem; }
+    .exp-bul li { font-size: 0.88rem; color: #555550; padding-left: 1.3em; position: relative; line-height: 1.7; }
+    .exp-bul li::before { content: '·'; position: absolute; left: 0; color: var(--celadon-d); font-size: 1.2em; line-height: 1.4; }
+    .chips { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 1rem; }
+    .chip  { font-family: var(--mono); font-size: 0.56rem; letter-spacing: 0.1em; border: 1px solid var(--border-l); color: var(--muted); padding: 0.2rem 0.55rem; }
+
+    /* Tech project grid */
+    .tpg {
+      display: grid; grid-template-columns: repeat(3,1fr);
+      margin-top: 5rem;
+      border: 1px solid var(--border-l);
+    }
+    .tpc {
+      padding: 2.8rem;
+      border-right: 1px solid var(--border-l);
+      position: relative; overflow: hidden;
+      transition: background 0.25s;
+    }
+    .tpc:last-child { border-right: none; }
+    .tpc::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--celadon-d);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.35s ease;
+    }
+    .tpc:hover { background: rgba(143,173,160,0.05); }
+    .tpc:hover::before { transform: scaleX(1); }
+    .tpc-tag  { font-family: var(--mono); font-size: 0.58rem; letter-spacing: 0.2em; color: var(--celadon-d); text-transform: uppercase; margin-bottom: 1rem; }
+    .tpc-name { font-family: var(--serif); font-size: 1.3rem; margin-bottom: 0.8rem; line-height: 1.2; }
+    .tpc-desc { font-size: 0.85rem; color: var(--muted); line-height: 1.75; margin-bottom: 1.5rem; }
+
+    /* Skills */
+    .skills-s { margin-top: 5rem; padding-top: 3rem; border-top: 1px solid var(--border-l); }
+    .sk-head  { font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--muted); margin-bottom: 1.5rem; }
+    .sk-cloud { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+    .sk-tag   { font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.1em; padding: 0.4rem 0.9rem; border: 1px solid var(--border-l); color: var(--ink); transition: background 0.2s, border-color 0.2s, color 0.2s; cursor: default; }
+    .sk-tag:hover { background: var(--celadon-d); color: white; border-color: var(--celadon-d); }
+
+    /* Arts tab */
+    .arts-intro { font-family: var(--serif); font-style: italic; font-size: 1.25rem; color: #555550; max-width: 58ch; margin-bottom: 5rem; line-height: 1.8; }
+
+    /* Collection blocks */
+    .col-lbl { font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.28em; text-transform: uppercase; color: var(--celadon-d); margin-bottom: 2rem; }
+    .col-block { display: grid; grid-template-columns: 1fr 1fr; background: var(--border-l); gap: 1px; margin-bottom: 1px; }
+    .col-block.rev { direction: rtl; }
+    .col-block.rev > * { direction: ltr; }
+    .col-img  { background: var(--ink); min-height: 440px; position: relative; overflow: hidden; }
+    .col-img img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.6s ease; }
+    .col-block:hover .col-img img { transform: scale(1.03); }
+    /* Tailoring block uses a more horizontal image window (slight crop, no letterboxing) */
+    .tailor-block .col-img { min-height: 340px; }
+    @media (max-width: 900px) { .tailor-block .col-img { min-height: 220px; } }
+    .col-img-ph { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 0.6rem; }
+    .col-big-num { font-family: var(--serif); font-style: italic; font-size: 9rem; color: rgba(143,173,160,0.06); line-height: 1; }
+    .col-img-lbl { font-family: var(--mono); font-size: 0.58rem; letter-spacing: 0.22em; color: rgba(143,173,160,0.2); text-transform: uppercase; }
+    .col-info { background: var(--chalk); padding: 4.5rem; display: flex; flex-direction: column; justify-content: center; }
+    .col-yr   { font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.22em; color: var(--celadon-d); text-transform: uppercase; margin-bottom: 0.8rem; }
+    .col-title { font-family: var(--serif); font-size: clamp(2rem, 3.5vw, 3rem); font-style: italic; line-height: 1.05; margin-bottom: 1.5rem; }
+    .col-desc { font-size: 0.92rem; color: #555550; line-height: 1.85; max-width: 44ch; }
+    .col-desc.quote { font-family: var(--serif); font-style: italic; color: var(--muted); margin-top: 1.2rem; font-size: 0.95rem; }
+    .col-tags { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 1.5rem; }
+    .col-tag  { font-family: var(--mono); font-size: 0.58rem; letter-spacing: 0.14em; border: 1px solid var(--border-l); padding: 0.25rem 0.7rem; color: var(--muted); }
+
+    /* Alterations */
+    .alt-block { display: grid; grid-template-columns: 1fr 2fr; background: var(--border-l); gap: 1px; margin-top: 1px; }
+    .alt-left  { background: var(--deep); padding: 4.5rem 3.5rem; display: flex; flex-direction: column; justify-content: flex-end; }
+    .alt-left .eyebrow { color: var(--celadon-d); }
+    .alt-left h3  { font-family: var(--serif); font-size: 2.2rem; font-style: italic; color: var(--chalk); line-height: 1.1; margin-bottom: 1rem; }
+    .alt-left p   { font-family: var(--mono); font-size: 0.7rem; color: rgba(240,236,227,0.3); line-height: 1.7; }
+    .alt-right { background: var(--chalk); padding: 4.5rem; display: flex; flex-direction: column; justify-content: center; }
+    .alt-right p  { color: #555550; font-size: 0.92rem; line-height: 1.85; margin-bottom: 1rem; max-width: 52ch; }
+    .svc-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1.2rem; }
+    .svc-tag  { font-family: var(--mono); font-size: 0.58rem; letter-spacing: 0.12em; padding: 0.3rem 0.8rem; background: rgba(90,128,112,0.08); border: 1px solid rgba(90,128,112,0.2); color: var(--celadon-d); }
+
+    /* Hobbies */
+    .hob-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 1px; background: var(--border-l); margin-top: 1px; }
+    .hob-card { background: var(--chalk); padding: 2.5rem; transition: background 0.2s; }
+    .hob-card:hover { background: white; }
+    .hob-icon { font-size: 1.5rem; margin-bottom: 1rem; }
+    .hob-name { font-family: var(--serif); font-size: 1.1rem; font-style: italic; margin-bottom: 0.4rem; }
+    .hob-desc { font-size: 0.82rem; color: var(--muted); line-height: 1.6; }
+
+    /* ── CONTACT ────────────────────────────── */
+    #contact {
+      background: var(--deep);
+      padding: 8rem 4rem;
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 7rem; align-items: start;
+      position: relative; overflow: hidden;
+    }
+    #contact::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-image: radial-gradient(circle, rgba(143,173,160,0.06) 1px, transparent 1px);
+      background-size: 32px 32px;
+      pointer-events: none;
+    }
+    .ct-left { position: relative; z-index: 1; }
+    .ct-left .eyebrow { color: var(--celadon-d); }
+    .ct-left h2 { font-family: var(--serif); font-size: clamp(2.5rem, 4.5vw, 4rem); color: var(--chalk); line-height: 1.05; margin-bottom: 1.5rem; }
+    .ct-left h2 em { font-style: italic; color: var(--celadon); }
+    .ct-left p { font-size: 0.92rem; color: rgba(240,236,227,0.4); max-width: 40ch; line-height: 1.85; margin-bottom: 2.5rem; }
+    .ct-email { font-family: var(--serif); font-size: 1.25rem; font-style: italic; color: var(--celadon); text-decoration: none; display: block; margin-bottom: 2.5rem; transition: opacity 0.2s; }
+    .ct-email:hover { opacity: 0.7; }
+    .ct-links { display: flex; gap: 1.5rem; }
+    .ct-link  { font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.18em; text-transform: uppercase; text-decoration: none; color: rgba(240,236,227,0.3); border-bottom: 1px solid rgba(143,173,160,0.2); padding-bottom: 2px; transition: color 0.2s, border-color 0.2s; }
+    .ct-link:hover { color: var(--celadon); border-color: var(--celadon); }
+    form { display: flex; flex-direction: column; gap: 2rem; position: relative; z-index: 1; }
+    .fg   { display: flex; flex-direction: column; gap: 0.5rem; }
+    label { font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(143,173,160,0.4); }
+    input, textarea { background: transparent; border: none; border-bottom: 1px solid rgba(143,173,160,0.15); padding: 0.8rem 0; font-family: var(--syne); font-size: 0.95rem; color: var(--chalk); outline: none; transition: border-color 0.2s; resize: none; }
+    input::placeholder, textarea::placeholder { color: rgba(240,236,227,0.15); }
+    input:focus, textarea:focus { border-color: var(--celadon-d); }
+    textarea { min-height: 110px; }
+    .sub-btn { align-self: flex-start; font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase; background: transparent; color: var(--celadon); border: 1px solid rgba(143,173,160,0.3); padding: 0.9rem 2.4rem; cursor: pointer; transition: background 0.25s, color 0.25s, border-color 0.25s; }
+    .sub-btn:hover { background: var(--celadon-d); color: white; border-color: var(--celadon-d); }
+
+    /* ── FOOTER ─────────────────────────────── */
+    footer { background: var(--ink); padding: 1.8rem 4rem; display: flex; justify-content: space-between; align-items: center; }
+    .ft-copy { font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.14em; color: rgba(143,173,160,0.2); }
+    .ft-tag  { font-family: var(--serif); font-size: 0.75rem; font-style: italic; color: rgba(143,173,160,0.2); }
+
+    /* ── ANIMATIONS ─────────────────────────── */
+    @keyframes fadeUp  { from { opacity:0; transform:translateY(22px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes fadeIn  { from { opacity:0; } to { opacity:1; } }
+    @keyframes slideUp { from { opacity:0; transform:translateY(100%); } to { opacity:1; transform:translateY(0); } }
+    .reveal { opacity:0; transform:translateY(30px); transition: opacity 0.75s ease, transform 0.75s ease; }
+    .reveal.visible { opacity:1; transform:translateY(0); }
+
+    /* ── RESPONSIVE ─────────────────────────── */
+    @media (max-width: 900px) {
+      nav { padding: 1.2rem 1.5rem; }
+      #hero .hero-main { padding: 8rem 1.5rem 2.5rem; }
+      .hero-scroll-hint { padding: 1.2rem 1.5rem; }
+      .hero-sub { grid-template-columns: 1fr; gap: 1.5rem; }
+      #about { grid-template-columns: 1fr; }
+      .about-photo { min-height: 280px; }
+      .about-text { padding: 3.5rem 1.5rem; }
+      #work { padding: 5rem 1.5rem; }
+      .work-top { flex-direction: column; align-items: flex-start; gap: 1.5rem; }
+      .exp-item { grid-template-columns: 1fr; gap: 0.8rem; }
+      .tpg { grid-template-columns: 1fr; }
+      .tpc { border-right: none; border-bottom: 1px solid var(--border-l); }
+      .col-block, .alt-block { grid-template-columns: 1fr; direction: ltr; }
+      .col-img { min-height: 260px; }
+      .hob-row { grid-template-columns: 1fr 1fr; }
+      #contact { grid-template-columns: 1fr; gap: 3.5rem; padding: 5rem 1.5rem; }
+      footer { padding: 1.5rem; flex-direction: column; gap: 0.5rem; text-align: center; }
+      .c-dot, .c-ring { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="c-dot" id="cd"></div>
+<div class="c-ring" id="cr"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner"></div>
+  <a href="#hero" class="nav-logo">Smriti Somasundaram</a>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#work">Work</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-main">
+    <p class="hero-eyebrow">Harvard Computational Human Mechanics · Class of 2026</p>
+
+    <div class="hero-poem">
+      <div class="poem-line">
+        <span class="word">Between</span>
+        <span class="word italic">circuits</span>
+      </div>
+      <div class="poem-line">
+        <span class="word outline">and</span>
+        <span class="word italic">cloth,</span>
+      </div>
+      <div class="poem-line">
+        <span class="word" style="font-size: clamp(1.4rem, 3vw, 3rem); color: rgba(240,236,227,0.35); letter-spacing: 0.08em;">I engineer the tangible.</span>
+      </div>
+    </div>
+
+    <div class="hero-sub">
+      <div class="hero-sub-item">
+        <strong>Engineering</strong>
+        Wearable technology, firmware, signal processing — building systems that understand the human body.
+      </div>
+      <div class="hero-sub-item">
+        <strong>Fashion &amp; Design</strong>
+        Original collections exploring South Asian American identity through garment and silhouette.
+      </div>
+      <div class="hero-sub-item">
+        <strong>The Thread Between</strong>
+        Both disciplines demand the same thing: a deep curiosity about how things fit together.
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="stitch"></div>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="about-photo">
+    <img src="images/headshot.JPG" alt="Smriti">
+    <!-- <div class="about-photo-ph">
+      <div class="ph-ring">📷</div>
+      <span class="ph-lbl">Your portrait here</span>
+    </div> -->
+  </div>
+  <div class="about-text">
+    <p class="eyebrow">About</p>
+    <h2 class="s-heading">Two worlds,<br><em>one maker.</em></h2>
+    <p>I'm Smriti, a Harvard student with a special concentration in Computational Human Mechanics, focused on wearable technology. I spend my days where the body meets the machine: building firmware, analyzing biosignals, and designing devices that live on human skin.</p>
+    <p>But I've always worked with my hands in a different way too. I founded a campus tailoring service, taught myself garment construction, and debuted two original fashion collections exploring what it means to dress between two cultures.</p>
+    <p>For me, engineering and fashion ask the same question: how do you make something that fits?</p>
+    <div class="about-stats">
+      <div><div class="stat-n">2+</div><div class="stat-l">Yrs industry exp.</div></div>
+      <div><div class="stat-n">2</div><div class="stat-l">Collections shown</div></div>
+      <div><div class="stat-n">∞</div><div class="stat-l">Things built</div></div>
+    </div>
+  </div>
+</section>
+
+<div class="stitch"></div>
+
+<!-- WORK -->
+<section id="work">
+  <div class="work-top">
+    <div>
+      <p class="eyebrow">Work &amp; Projects</p>
+      <h2 class="s-heading">The Assembly:<br><em>Projects and Patterns</em></h2>
+      <p>Two tracks. One story. Choose your lens.</p>
+    </div>
+    <div class="tabs" role="tablist">
+      <button class="tb active" data-tab="tech" role="tab" aria-selected="true">⌗ Engineering</button>
+      <button class="tb" data-tab="arts" role="tab" aria-selected="false">✦ Fashion &amp; Arts</button>
+    </div>
+  </div>
+
+  <!-- ── ENGINEERING ── -->
+  <div class="tab-panel active" id="tab-tech">
+    <div class="exp-list">
+
+      <div class="exp-item reveal">
+        <div>
+          <div class="exp-co">Catapult</div>
+          <div class="exp-pd">Jun 2025 – Dec 2025</div>
+          <div class="exp-loc">Boston, MA</div>
+        </div>
+        <div>
+          <div class="exp-role">Firmware Engineering Intern — Perch</div>
+          <ul class="exp-bul">
+            <li>Improved inter-node communication for Perch v2 firmware, reducing latency and increasing reliability in distributed operations.</li>
+            <li>Enhanced motor control code for more precise, responsive, and stable device performance.</li>
+            <li>Optimized IMU sensor fusion algorithms, improving directional movement accuracy and robustness.</li>
+          </ul>
+          <div class="chips"><span class="chip">C/C++</span><span class="chip">Firmware</span><span class="chip">IMU</span><span class="chip">Motor Control</span><span class="chip">Embedded</span></div>
+        </div>
+      </div>
+
+      <div class="exp-item reveal">
+        <div>
+          <div class="exp-co">Catapult</div>
+          <div class="exp-pd">Jun 2024 – Jun 2025</div>
+          <div class="exp-loc">Boston, MA</div>
+        </div>
+        <div>
+          <div class="exp-role">Engineering Intern — Video Software</div>
+          <ul class="exp-bul">
+            <li>Built automated features for D1 football restricted access using TypeScript and React within Vault and Exchange.</li>
+            <li>Enhanced real-time streaming, reducing live media processing time to 15 minutes.</li>
+            <li>Collaborated with hardware team on ECG and LPS sensor integration for wearable devices.</li>
+          </ul>
+          <div class="chips"><span class="chip">TypeScript</span><span class="chip">React</span><span class="chip">Streaming</span><span class="chip">ECG Sensors</span></div>
+        </div>
+      </div>
+
+      <div class="exp-item reveal">
+        <div>
+          <div class="exp-co">Harvard — Walsh Lab</div>
+          <div class="exp-pd">Oct 2023 – Oct 2024</div>
+          <div class="exp-loc">Cambridge, MA</div>
+        </div>
+        <div>
+          <div class="exp-role">Student Researcher — Soft Exoskeletons</div>
+          <ul class="exp-bul">
+            <li>Researched lower-limb exoskeletons for Parkinson's Disease patients focused on gait assistance.</li>
+            <li>Applied linear regression to refine real-time gait sensor detection algorithms.</li>
+            <li>Built a GUI marking system with engineers and physicians to streamline sensor data integration.</li>
+          </ul>
+          <div class="chips"><span class="chip">Python</span><span class="chip">Signal Processing</span><span class="chip">Biomechanics</span><span class="chip">Linear Regression</span></div>
+        </div>
+      </div>
+
+      <div class="exp-item reveal">
+        <div>
+          <div class="exp-co">Stealth Startup</div>
+          <div class="exp-pd">Jan – Mar 2024</div>
+          <div class="exp-loc">Cambridge, MA</div>
+        </div>
+        <div>
+          <div class="exp-role">Software Engineering Intern</div>
+          <ul class="exp-bul">
+            <li>Developed a web-based user portal improving engagement and accessibility.</li>
+            <li>Implemented data storage and retrieval with Amazon Aurora and S3, optimized for scale.</li>
+          </ul>
+          <div class="chips"><span class="chip">AWS Aurora</span><span class="chip">S3</span><span class="chip">Full Stack</span></div>
+        </div>
+      </div>
+
+    </div>
+
+    <div style="margin: 5rem 0 2rem;">
+      <p class="eyebrow">Technical Projects</p>
+    </div>
+    <div class="tpg">
+      <div class="tpc reveal">
+        <p class="tpc-tag">Thesis · Spring 2026</p>
+        <h3 class="tpc-name">Vibrational Effects on Epigastric Stress</h3>
+        <p class="tpc-desc">Human subject experiments studying how localized mechanical stimuli affect physiological stress indicators. Designing protocols, collecting data, running signal analysis.</p>
+        <div class="chips"><span class="chip">Signal Processing</span><span class="chip">Human Subjects</span><span class="chip">Python</span></div>
+      </div>
+      <div class="tpc reveal">
+        <p class="tpc-tag">Wearable · Jan 2025</p>
+        <h3 class="tpc-name">Sleep-Tracking Wearable</h3>
+        <p class="tpc-desc">ECG and IMU sensor-based device for real-time sleep monitoring, with ML-based analysis to classify sleep quality and movement patterns.</p>
+        <div class="chips"><span class="chip">ECG</span><span class="chip">IMU</span><span class="chip">Machine Learning</span><span class="chip">Hardware</span></div>
+      </div>
+      <div class="tpc reveal">
+        <p class="tpc-tag">Wearable · Spring 2024</p>
+        <h3 class="tpc-name">RC Racing Gloves</h3>
+        <p class="tpc-desc">Gesture-controlled RC vehicles via pressure sensors and MOSFETs on an Arduino. Designed custom glove and wristband circuitry from scratch.</p>
+        <div class="chips"><span class="chip">Arduino</span><span class="chip">C</span><span class="chip">Circuit Design</span><span class="chip">MOSFET</span></div>
+      </div>
+    </div>
+
+    <div class="skills-s reveal">
+      <p class="sk-head">Technical Skills</p>
+      <div class="sk-cloud">
+        <span class="sk-tag">C</span><span class="sk-tag">C++</span><span class="sk-tag">Python</span>
+        <span class="sk-tag">Java</span><span class="sk-tag">TypeScript</span><span class="sk-tag">JavaScript</span>
+        <span class="sk-tag">React</span><span class="sk-tag">Swift</span><span class="sk-tag">SQL</span>
+        <span class="sk-tag">R</span><span class="sk-tag">Git</span><span class="sk-tag">AWS</span>
+        <span class="sk-tag">Signal Processing</span><span class="sk-tag">Machine Learning</span>
+        <span class="sk-tag">Firmware</span><span class="sk-tag">Embedded Systems</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── FASHION & ARTS ── -->
+  <div class="tab-panel" id="tab-arts">
+    <p class="arts-intro">
+      Alongside engineering, I design and construct garments from scratch. My collections explore South Asian American identity — what it means to exist between two aesthetic worlds, and how clothing can hold that complexity without resolving it.
+    </p>
+
+    <p class="col-lbl">Original Collections</p>
+
+    <div class="col-block reveal">
+      <div class="col-img">
+        <img src="images/sandhi.png" alt="Sandhi">
+      </div>
+      <div class="col-info">
+        <p class="col-yr">February 2026</p>
+        <h3 class="col-title">Sandhi</h3>
+        <p class="col-desc">A six-piece collection exploring the transition between American and South Asian clothing. Each garment gradually shifts from Western forms toward traditional South Asian elements — using dress as a visual language for hybridity rather than separation.</p>
+        <p class="col-desc quote">"Cultural dress exists not as fixed categories, but as a continuum shaped by migration, adaptation, and personal history."</p>
+        <div class="col-tags">
+          <span class="col-tag">6 Pieces</span><span class="col-tag">South Asian American</span><span class="col-tag">Identity</span><span class="col-tag">Handmade</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-block rev reveal">
+      <div class="col-img">
+        <img src="images/arambam.jpeg" alt="Arambam">
+      </div>
+      <div class="col-info">
+        <p class="col-yr">April 2023</p>
+        <h3 class="col-title">Arambam</h3>
+        <p class="col-desc">Indo-Western clothing blending traditional South Asian textiles and motifs with contemporary Western silhouettes — exploring how cultural dress evolves through reinterpretation rather than dilution.</p>
+        <div class="col-tags">
+          <span class="col-tag">Indo-Western</span><span class="col-tag">Textiles</span><span class="col-tag">Silhouette</span><span class="col-tag">Showcase</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-block reveal tailor-block">
+      <div class="col-img">
+        <img src="images/tailor.png" alt="College Alterations tailoring work">
+      </div>
+      <div class="col-info">
+        <p class="col-yr">Since Dec 2022</p>
+        <h3 class="col-title">College Alterations</h3>
+        <p class="col-desc">Founded and operated independently on the Harvard campus.</p>
+        <p class="col-desc">I started a garment alterations service to make quality tailoring accessible to students — good craftsmanship at fair prices, no appointment required.</p>
+        <p class="col-desc">Client intake, fittings, turnaround timelines, and the actual sewing — across a wide range of fabrics and silhouettes, all managed independently.</p>
+        <div class="col-tags">
+          <span class="col-tag">Tailoring Business</span><span class="col-tag">Hemming</span><span class="col-tag">Resizing</span><span class="col-tag">Tapering</span><span class="col-tag">Repair</span><span class="col-tag">Multi-fabric</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="hob-row reveal">
+      <div class="hob-card"><div class="hob-icon">🪡</div><div class="hob-name">Sewing &amp; Making</div><div class="hob-desc">Pattern drafting, construction, tailoring — from wearable tech to wearable fashion.</div></div>
+      <div class="hob-card"><div class="hob-icon">💃</div><div class="hob-name">Bharatanatyam</div><div class="hob-desc">Classical South Indian dance — movement, culture, and storytelling as one practice.</div></div>
+      <div class="hob-card"><div class="hob-icon">🎨</div><div class="hob-name">Graphic Design</div><div class="hob-desc">Visual communication as building — layout, type, composition, and intention.</div></div>
+      <div class="hob-card"><div class="hob-icon">🏀</div><div class="hob-name">Basketball</div><div class="hob-desc">Team strategy and the satisfaction of something that just works.</div></div>
+    </div>
+  </div>
+
+</section>
+
+<div class="stitch"></div>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="ct-left reveal">
+    <p class="eyebrow">Contact</p>
+    <h2>Let's make<br><em>something.</em></h2>
+    <p>Open to engineering roles, creative collaborations, and conversations at the edges of both. If you're working on something or want to work with me,reach out.</p>
+    <a href="mailto:smritisomasundaram@college.harvard.edu" class="ct-email">smritisomasundaram@college.harvard.edu</a>
+    <div class="ct-links">
+      <a href="https://linkedin.com/in/smriti-somasundaram" target="_blank" class="ct-link">LinkedIn</a>
+      <a href="https://instagram.com/smritisews" target="_blank" class="ct-link">Instagram</a>
+      <a href="https://github.com/smritis17" target="_blank" class="ct-link">GitHub</a>
+    </div>
+  </div>
+  <form class="reveal" onsubmit="handleSubmit(event)">
+    <div class="fg"><label for="cn">Name</label><input type="text" id="cn" name="name" placeholder="Your name" required></div>
+    <div class="fg"><label for="ce">Email</label><input type="email" id="ce" name="email" placeholder="your@email.com" required></div>
+    <div class="fg"><label for="cm">Message</label><textarea id="cm" name="message" placeholder="Tell me what you're making…" required></textarea></div>
+    <button type="submit" class="sub-btn">Send Message</button>
+  </form>
+</section>
+
+<footer>
+  <span class="ft-copy">© 2026 Smriti Somasundaram</span>
+  <span class="ft-tag">Between circuits and cloth.</span>
+</footer>
+
+<script>
+  // Cursor
+  const cd=document.getElementById('cd'), cr=document.getElementById('cr');
+  let mx=0,my=0,rx=0,ry=0;
+  document.addEventListener('mousemove',e=>{
+    mx=e.clientX; my=e.clientY;
+    cd.style.transform=`translate(${mx-4}px,${my-4}px)`;
+  });
+  (function loop(){
+    rx+=(mx-rx)*0.11; ry+=(my-ry)*0.11;
+    cr.style.transform=`translate(${rx-20}px,${ry-20}px)`;
+    requestAnimationFrame(loop);
+  })();
+
+  // Tabs
+  document.querySelectorAll('.tb').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      document.querySelectorAll('.tb').forEach(b=>{ b.classList.remove('active'); b.setAttribute('aria-selected','false'); });
+      document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+      btn.classList.add('active'); btn.setAttribute('aria-selected','true');
+      document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
+      setTimeout(triggerReveals,50);
+    });
+  });
+
+  // Scroll reveal
+  function triggerReveals(){
+    document.querySelectorAll('.reveal:not(.visible)').forEach((el,i)=>{
+      const r=el.getBoundingClientRect();
+      if(r.top < window.innerHeight-50) setTimeout(()=>el.classList.add('visible'),i*80);
+    });
+  }
+  window.addEventListener('scroll',triggerReveals,{passive:true});
+  triggerReveals();
+
+  // Contact form
+  function handleSubmit(e){
+    e.preventDefault();
+    const btn=e.target.querySelector('.sub-btn');
+    btn.textContent='Sent ✓'; btn.style.background='var(--celadon-d)'; btn.style.color='white';
+    setTimeout(()=>{ btn.textContent='Send Message'; btn.style.background=''; btn.style.color=''; },3000);
+  }
+</script>
+</body>
+</html>
